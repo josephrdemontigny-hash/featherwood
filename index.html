@@ -119,10 +119,29 @@ h1{font-family:var(--serif);font-weight:700;font-size:54px;line-height:1;margin:
 .cause-ico{width:64px;height:64px;margin:0 auto 4px;display:block}
 .rowbtns{display:flex;gap:10px;width:min(300px,100%)}
 .rowbtns .btn{flex:1;height:48px;font-size:14px;background:rgba(47,74,53,.1);color:var(--moss);border-radius:14px;border:1px solid rgba(47,74,53,.22)}
+
+#vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 46%,rgba(8,12,9,0) 52%,rgba(8,12,9,.5) 100%)}
+#danger{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 45%,rgba(140,20,10,0) 45%,rgba(140,20,10,.6) 100%)}
+#flash{position:absolute;inset:0;pointer-events:none;opacity:0;background:#fffaeb}
+#pops{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.pop{position:absolute;left:0;top:0;opacity:0;text-align:center;white-space:nowrap;will-change:transform}
+.pop b{display:block;font-family:var(--serif);font-size:24px;font-weight:700;text-shadow:0 2px 0 rgba(20,24,18,.6),0 0 10px rgba(20,24,18,.5)}
+.pop span{display:block;font-size:13px;font-weight:800;color:#fbf5e6;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.pop.on b{animation:popIn .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes popIn{0%{transform:scale(.4)}100%{transform:scale(1)}}
+#ghost{position:absolute;left:50%;top:63%;width:0;height:0;pointer-events:none}
+#ghost .gdot{position:absolute;left:-17px;top:-17px;width:34px;height:34px;border-radius:50%;background:rgba(255,248,230,.95);border:2px solid rgba(47,74,53,.9);
+  box-shadow:0 0 0 6px rgba(255,248,230,.25);animation:ghostPull 2.4s ease-in-out infinite}
+#ghost .gline{position:absolute;left:-1px;top:0;width:2px;height:0;background:repeating-linear-gradient(180deg,rgba(255,248,230,.9) 0 5px,transparent 5px 10px);animation:ghostLine 2.4s ease-in-out infinite}
+@keyframes ghostPull{0%,10%{transform:translate(0,0);opacity:0}18%{opacity:1}55%,72%{transform:translate(-18px,92px);opacity:1}80%,100%{transform:translate(-18px,92px);opacity:0}}
+@keyframes ghostLine{0%,10%{height:0;opacity:0}18%{opacity:1}55%,72%{height:92px;transform:rotate(11deg);transform-origin:top;opacity:1}80%,100%{opacity:0;height:92px}}
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
+<div id="vignette"></div><div id="danger"></div><div id="flash"></div>
+<div id="pops"></div>
+<div id="ghost" class="hidden"><div class="gdot"></div><div class="gline"></div></div>
 
 <div id="hud" class="hidden">
   <div class="hud-left">
@@ -190,7 +209,7 @@ h1{font-family:var(--serif);font-weight:700;font-size:54px;line-height:1;margin:
   </div>
 </div>
 
-<script src="game.js"></script>
+<script type="module" src="game.js"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
 </script>
