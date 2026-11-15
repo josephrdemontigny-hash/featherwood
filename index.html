@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Featherwood">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#18241c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<title>Featherwood</title>
+<style>
+:root{
+  --cream:#f4ecd8; --cream2:#e9dcbd; --ink:#1f2b22; --moss:#2f4a35; --moss2:#3d5e43;
+  --rust:#c45a2c; --gold:#e2b04a; --muted:#6c6a58;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",system-ui,sans-serif;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#18241c;position:fixed;inset:0;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;overscroll-behavior:none;
+  -webkit-text-size-adjust:100%;font-family:var(--sans);color:var(--ink)}
+canvas#game{position:absolute;left:0;top:0;width:100%;height:100%;display:block;touch-action:none}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer;touch-action:manipulation}
+.hidden{display:none !important}
+
+/* HUD */
+#hud{position:absolute;left:0;right:0;top:0;pointer-events:none;padding:calc(var(--sat) + 12px) calc(var(--sar) + 14px) 0 calc(var(--sal) + 16px);
+  display:flex;align-items:flex-start;justify-content:space-between}
+.hud-left{display:flex;flex-direction:column;gap:2px;min-width:110px}
+#score{font-family:var(--serif);font-weight:700;font-size:38px;line-height:1;color:#fbf5e6;letter-spacing:.5px;
+  text-shadow:0 2px 0 rgba(20,28,22,.55),0 0 14px rgba(20,28,22,.35);font-variant-numeric:tabular-nums}
+#dist{font-size:12px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;color:rgba(251,245,230,.88);text-shadow:0 1px 2px rgba(0,0,0,.5)}
+#flaps{display:flex;gap:3px;margin-top:7px}
+#flaps svg{width:20px;height:26px;transition:transform .15s ease,opacity .2s}
+#flaps svg.off{opacity:.28;transform:scale(.86)}
+#flaps svg.pop{animation:pop .35s ease}
+@keyframes pop{0%{transform:scale(1.5)}100%{transform:scale(1)}}
+#combo{position:absolute;left:50%;top:calc(var(--sat) + 14px);transform:translateX(-50%);display:flex;align-items:baseline;gap:3px;
+  background:rgba(24,36,28,.62);border:1px solid rgba(244,236,216,.35);border-radius:999px;padding:5px 12px 6px;color:var(--cream);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#combo b{font-family:var(--serif);font-size:24px;line-height:1;color:var(--gold)}
+#combo span{font-family:var(--serif);font-size:15px;color:var(--gold)}
+#combo small{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;margin-left:4px;opacity:.85}
+#combo.bump{animation:bump .3s ease}
+@keyframes bump{0%{transform:translateX(-50%) scale(1.35)}100%{transform:translateX(-50%) scale(1)}}
+#pauseBtn{pointer-events:auto;width:46px;height:46px;border-radius:50%;background:rgba(24,36,28,.55);border:1px solid rgba(244,236,216,.35);
+  display:flex;align-items:center;justify-content:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#pauseBtn:active{transform:scale(.92)}
+#pauseBtn svg{width:18px;height:18px}
+
+#banner{position:absolute;left:0;right:0;top:calc(var(--sat) + 104px);text-align:center;pointer-events:none;opacity:0;transition:opacity .6s ease}
+#banner.show{opacity:1}
+#banner .z{font-family:var(--serif);font-size:26px;font-weight:700;color:#fbf5e6;letter-spacing:1px;text-shadow:0 2px 10px rgba(0,0,0,.45)}
+#banner .s{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(251,245,230,.85);margin-top:4px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+#banner .orn{width:120px;height:10px;margin:6px auto 0;opacity:.85}
+
+#hint{position:absolute;left:50%;bottom:calc(var(--sab) + 34px);transform:translateX(-50%);pointer-events:none;
+  background:rgba(244,236,216,.94);color:var(--ink);border-radius:16px;padding:11px 16px 11px 12px;display:flex;align-items:center;gap:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,.28);max-width:calc(100% - 40px);width:max-content;font-size:15px;font-weight:600;line-height:1.25;
+  animation:hintIn .35s ease}
+#hint svg{flex:0 0 auto;width:34px;height:34px}
+@keyframes hintIn{0%{opacity:0;transform:translate(-50%,10px)}100%{opacity:1;transform:translate(-50%,0)}}
+
+#hawkWarn{position:absolute;left:calc(var(--sal) + 12px);top:27%;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:4px;
+  color:#ffe9d6;font-size:11px;font-weight:800;letter-spacing:2.4px;animation:pulse .6s ease-in-out infinite alternate}
+#hawkWarn .disc{width:58px;height:58px;border-radius:50%;background:rgba(150,32,18,.82);border:2px solid #f6c9a8;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 22px rgba(200,40,20,.6)}
+#hawkWarn svg{width:40px;height:40px}
+#hawkWarn .bar{width:52px;height:5px;border-radius:3px;background:rgba(0,0,0,.4);overflow:hidden}
+#hawkWarn .bar i{display:block;height:100%;background:#ffb27a;width:100%}
+@keyframes pulse{0%{transform:scale(1)}100%{transform:scale(1.08)}}
+
+/* Screens */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;pointer-events:auto}
+#title{justify-content:space-between;padding:calc(var(--sat) + 54px) 24px calc(var(--sab) + 40px);
+  background:linear-gradient(180deg,rgba(18,28,20,.62) 0%,rgba(18,28,20,.15) 34%,rgba(18,28,20,0) 50%,rgba(18,28,20,.05) 64%,rgba(18,28,20,.7) 100%)}
+.title-top{text-align:center;color:#fbf5e6}
+.eyebrow{font-size:11px;letter-spacing:4px;text-transform:uppercase;opacity:.86}
+h1{font-family:var(--serif);font-weight:700;font-size:54px;line-height:1;margin:10px 0 0;letter-spacing:1px;
+  text-shadow:0 3px 0 rgba(15,22,17,.45),0 0 30px rgba(15,22,17,.4)}
+.orn-rule{width:210px;height:16px;margin:12px auto 10px;display:block}
+.tag{font-family:var(--serif);font-style:italic;font-size:17px;margin:0;opacity:.94}
+.title-bottom{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+#titleBest{color:#fbf5e6;font-size:12px;letter-spacing:2.6px;text-transform:uppercase;opacity:.9;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+#titleBest b{font-family:var(--serif);font-size:18px;letter-spacing:.5px;color:var(--gold);margin-left:6px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;border-radius:18px;font-weight:700;letter-spacing:.4px}
+.btn:active{transform:scale(.96)}
+.btn.primary{width:min(300px,100%);height:62px;background:linear-gradient(180deg,#d56a37,#b04a20);color:#fff6e8;font-size:19px;
+  box-shadow:0 5px 0 #7a3014,0 12px 26px rgba(0,0,0,.35);border:1px solid rgba(255,220,190,.35)}
+.btn.primary:active{box-shadow:0 2px 0 #7a3014,0 6px 14px rgba(0,0,0,.35);transform:translateY(3px)}
+.btn.secondary{width:min(300px,100%);height:52px;background:var(--moss);color:var(--cream);font-size:16px;box-shadow:0 4px 0 #1b2d20}
+.btn.ghost{height:40px;padding:0 16px;color:#fbf5e6;font-size:13px;background:rgba(24,36,28,.5);border:1px solid rgba(244,236,216,.35);border-radius:999px}
+.btn svg{width:20px;height:20px}
+
+.veil{background:rgba(14,22,16,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);justify-content:center;padding:24px}
+.card{position:relative;width:min(340px,100%);background:var(--cream);border-radius:22px;padding:26px 22px 22px;text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.6);animation:cardIn .35s cubic-bezier(.2,1.3,.4,1)}
+.card:before{content:"";position:absolute;inset:7px;border:1px solid rgba(47,74,53,.28);border-radius:16px;pointer-events:none}
+@keyframes cardIn{0%{opacity:0;transform:translateY(24px) scale(.94)}100%{opacity:1;transform:none}}
+.card h2{font-family:var(--serif);font-size:30px;margin:2px 0 4px;color:var(--ink)}
+.card .sub{font-size:12px;letter-spacing:2.4px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.card .stack{display:flex;flex-direction:column;gap:12px;align-items:center;margin-top:16px}
+.bigscore{font-family:var(--serif);font-weight:700;font-size:64px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+.bestline{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.bestline b{color:var(--rust);font-family:var(--serif);font-size:16px;letter-spacing:.5px}
+.newbest{display:inline-block;margin-top:8px;background:var(--rust);color:#fff3e4;font-size:11px;font-weight:800;letter-spacing:2.4px;padding:5px 12px;border-radius:999px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(47,74,53,.18)}
+.stats div{display:flex;flex-direction:column;align-items:center;gap:3px}
+.stats svg{width:22px;height:22px}
+.stats b{font-family:var(--serif);font-size:19px;color:var(--ink)}
+.stats span{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.cause-ico{width:64px;height:64px;margin:0 auto 4px;display:block}
+.rowbtns{display:flex;gap:10px;width:min(300px,100%)}
+.rowbtns .btn{flex:1;height:48px;font-size:14px;background:rgba(47,74,53,.1);color:var(--moss);border-radius:14px;border:1px solid rgba(47,74,53,.22)}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud" class="hidden">
+  <div class="hud-left">
+    <div id="score">0</div>
+    <div id="dist"><span id="distv">0</span> m flown</div>
+    <div id="flaps"></div>
+  </div>
+  <button id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 18 18"><rect x="3" y="2" width="4.2" height="14" rx="1.4" fill="#f4ecd8"/><rect x="10.8" y="2" width="4.2" height="14" rx="1.4" fill="#f4ecd8"/></svg></button>
+</div>
+<div id="combo" class="hidden"><span>x</span><b id="combov">2</b><small>chain</small></div>
+<div id="banner"><div class="z" id="bannerZ"></div>
+  <svg class="orn" viewBox="0 0 120 10"><path d="M2 5H48M72 5H118" stroke="#fbf5e6" stroke-width="1"/><path d="M60 1l4 4-4 4-4-4z" fill="#e2b04a"/><circle cx="52" cy="5" r="1.4" fill="#fbf5e6"/><circle cx="68" cy="5" r="1.4" fill="#fbf5e6"/></svg>
+  <div class="s" id="bannerS"></div></div>
+<div id="hawkWarn" class="hidden"><div class="disc"><svg viewBox="0 0 40 40"><path d="M20 21c-3-4-8-7-17-7 4 2 6 4 8 7 3 0 5 1 6 3l-2 6 5-3 5 3-2-6c1-2 3-3 6-3 2-3 4-5 8-7-9 0-14 3-17 7z" fill="#fff1e2"/><circle cx="20" cy="18" r="2.4" fill="#fff1e2"/><path d="M20 17.5l2.6 1.2-2.6.9z" fill="#e2b04a"/></svg></div>HAWK<div class="bar"><i id="hawkBar"></i></div></div>
+<div id="hint" class="hidden"><svg id="hintIco" viewBox="0 0 34 34"></svg><span id="hintText"></span></div>
+
+<div id="title" class="screen">
+  <div class="title-top">
+    <div class="eyebrow">An old-growth flight</div>
+    <h1>Featherwood</h1>
+    <svg class="orn-rule" viewBox="0 0 210 16"><path d="M4 8H84M126 8H206" stroke="#f4ecd8" stroke-width="1.2" opacity=".8"/>
+      <path d="M105 2c-6 2-11 4-17 6 6 2 11 4 17 6 6-2 11-4 17-6-6-2-11-4-17-6z" fill="none" stroke="#e2b04a" stroke-width="1.3"/>
+      <circle cx="105" cy="8" r="2.2" fill="#e2b04a"/><circle cx="90" cy="8" r="1.3" fill="#f4ecd8"/><circle cx="120" cy="8" r="1.3" fill="#f4ecd8"/></svg>
+    <p class="tag">Leap, glide and dive from branch to branch</p>
+  </div>
+  <div class="title-bottom">
+    <div id="titleBest">Best<b>0</b></div>
+    <button id="playBtn" class="btn primary"><svg viewBox="0 0 20 20"><path d="M10 3c-1 3-4 5-8 5 3 1 5 2 6 4l-1 5 3-2 3 2-1-5c1-2 3-3 6-4-4 0-7-2-8-5z" fill="#fff6e8"/></svg>Take flight</button>
+    <button id="soundBtn" class="btn ghost"></button>
+  </div>
+</div>
+
+<div id="pause" class="screen veil hidden">
+  <div class="card">
+    <div class="sub">Paused</div>
+    <h2>Resting on a branch</h2>
+    <div class="stack">
+      <button id="resumeBtn" class="btn primary">Resume</button>
+      <div class="rowbtns">
+        <button id="restartBtn" class="btn">Restart</button>
+        <button id="soundBtn2" class="btn"></button>
+        <button id="quitBtn" class="btn">Title</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="over" class="screen veil hidden">
+  <div class="card">
+    <svg id="causeIco" class="cause-ico" viewBox="0 0 64 64"></svg>
+    <div class="sub" id="causeText">Fell to the forest floor</div>
+    <div class="bigscore" id="overScore">0</div>
+    <div class="bestline">Best <b id="overBest">0</b></div>
+    <div id="newBest" class="newbest hidden">NEW BEST</div>
+    <div class="stats">
+      <div><svg viewBox="0 0 22 22"><path d="M2 16c4-1 6-5 9-9s6-5 9-5" fill="none" stroke="#2f4a35" stroke-width="1.6" stroke-dasharray="2 2.4"/><path d="M17 1.5l3.5 1-1.6 3.2" fill="none" stroke="#2f4a35" stroke-width="1.6"/><circle cx="2.5" cy="16.5" r="2" fill="#c45a2c"/></svg><b id="stDist">0</b><span>metres</span></div>
+      <div><svg viewBox="0 0 22 22"><path d="M3 14h16" stroke="#5a4030" stroke-width="2.4" stroke-linecap="round"/><path d="M11 3l1.9 4.1 4.4.5-3.3 3 .9 4.3L11 12.8 7.1 14.9l.9-4.3-3.3-3 4.4-.5z" fill="#e2b04a" stroke="#9a6c1c" stroke-width=".8"/></svg><b id="stPerf">0</b><span>perfect</span></div>
+      <div><svg viewBox="0 0 22 22"><path d="M11 3c0 3 1 4 3 5" stroke="#3d5e43" stroke-width="1.4" fill="none"/><circle cx="8" cy="13" r="4.2" fill="#b3282b"/><circle cx="14.5" cy="14.5" r="3.8" fill="#9c1f24"/><circle cx="12" cy="9.5" r="3.3" fill="#c73a32"/><circle cx="7" cy="11.5" r="1" fill="#ffd9cf"/></svg><b id="stBerry">0</b><span>berries</span></div>
+      <div><svg viewBox="0 0 22 22"><path d="M4 18l4-5 3 3 7-11" fill="none" stroke="#c45a2c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 4.5h4.5V9" fill="none" stroke="#c45a2c" stroke-width="2" stroke-linecap="round"/></svg><b id="stCombo">0</b><span>best chain</span></div>
+    </div>
+    <div class="stack">
+      <button id="againBtn" class="btn primary">Fly again</button>
+      <div class="rowbtns"><button id="titleBtn" class="btn">Title</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="game.js"></script>
+<script>
+if('serviceWorker' in navigator && location.protocol!=='file:'){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+</script>
+</body>
+</html>
