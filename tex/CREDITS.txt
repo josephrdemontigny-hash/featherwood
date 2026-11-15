@@ -1,0 +1,6 @@
+Textures from Poly Haven (https://polyhaven.com), licensed CC0 1.0 (public domain). Resized and recompressed.
+oak_*      <- jolcham_oak_bark_01
+maple_*    <- trident_maple_bark
+redwood_*  <- metasequoia_bark (dawn redwood)
+ground_*   <- forest_leaves_02
+Birch bark, leaves, ferns, grass, rock, feathers and plumage are generated procedurally in game.js.
