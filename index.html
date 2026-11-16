@@ -135,23 +135,60 @@ h1{font-family:var(--serif);font-weight:700;font-size:54px;line-height:1;margin:
 #ghost .gline{position:absolute;left:-1px;top:0;width:2px;height:0;background:repeating-linear-gradient(180deg,rgba(255,248,230,.9) 0 5px,transparent 5px 10px);animation:ghostLine 2.4s ease-in-out infinite}
 @keyframes ghostPull{0%,10%{transform:translate(0,0);opacity:0}18%{opacity:1}55%,72%{transform:translate(-18px,92px);opacity:1}80%,100%{transform:translate(-18px,92px);opacity:0}}
 @keyframes ghostLine{0%,10%{height:0;opacity:0}18%{opacity:1}55%,72%{height:92px;transform:rotate(11deg);transform-origin:top;opacity:1}80%,100%{opacity:0;height:92px}}
+
+/* v4 */
+#hearts{display:flex;gap:4px;margin-top:2px}
+#hearts svg{width:24px;height:22px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45));transition:transform .15s ease,opacity .2s}
+#hearts svg.off{opacity:.22;transform:scale(.82);filter:grayscale(1)}
+#hearts svg.pop{animation:pop .35s ease}
+#hearts.low svg:not(.off){animation:beat .7s ease-in-out infinite}
+@keyframes beat{0%,100%{transform:scale(1)}40%{transform:scale(1.22)}}
+#score{font-size:30px;margin-top:6px}
+#dist.bad{color:#ffb39a}
+.hud-right{display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+#compassBtn{pointer-events:auto;position:relative;width:46px;height:46px;border-radius:50%;background:rgba(24,36,28,.55);border:1px solid rgba(244,236,216,.35);
+  display:flex;align-items:center;justify-content:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);overflow:hidden}
+#compassBtn svg{width:26px;height:26px;position:relative}
+#compassBtn:before{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(var(--cd,0)*100%);background:rgba(0,0,0,.45)}
+#compassBtn.cool svg{opacity:.5}
+#compass{position:absolute;left:50%;top:calc(var(--sat) + 16px);transform:translateX(-50%) scale(.8);opacity:0;transition:opacity .4s,transform .4s;pointer-events:none;text-align:center}
+#compass.show{opacity:1;transform:translateX(-50%) scale(1)}
+#compass .dial{width:70px;height:70px;border-radius:50%;background:rgba(24,36,28,.6);border:1.5px solid rgba(244,236,216,.6);display:flex;align-items:center;justify-content:center;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 0 24px rgba(255,220,140,.35)}
+#needle{width:24px;height:56px;transition:transform .25s ease-out}
+#compassDist{margin-top:4px;font-size:11px;font-weight:700;letter-spacing:1.6px;color:#fbf5e6;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+#banner.bad .s{color:#ffb39a}
+#flash.red{background:#c0281c}
+.howto{margin:16px auto 0;width:min(320px,100%);background:rgba(18,28,20,.55);border:1px solid rgba(244,236,216,.28);border-radius:16px;padding:12px 14px;
+  color:#fbf5e6;text-align:left;font-size:13.5px;line-height:1.4;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.howto div{display:flex;gap:10px;align-items:center;padding:3px 0}
+.howto i{flex:0 0 26px;height:26px;border-radius:50%;background:rgba(226,176,74,.22);border:1px solid rgba(226,176,74,.6);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:13px}
+.howto b{color:var(--gold)}
+.stats.three{grid-template-columns:repeat(3,1fr)}
+.leftline{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.leftline b{color:var(--moss);font-family:var(--serif);font-size:16px;letter-spacing:.5px}
+.route{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--moss);margin-top:10px}
+.seed{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:8px}
+#win .card{background:linear-gradient(180deg,#fff9e8,#f4ecd8)}
+#win .wingl{width:76px;height:76px;margin:0 auto 2px;display:block}
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
 <div id="vignette"></div><div id="danger"></div><div id="flash"></div>
 <div id="pops"></div>
-<div id="ghost" class="hidden"><div class="gdot"></div><div class="gline"></div></div>
-
 <div id="hud" class="hidden">
   <div class="hud-left">
-    <div id="score">0</div>
-    <div id="dist"><span id="distv">0</span> m flown</div>
-    <div id="flaps"></div>
+    <div id="hearts"></div>
+    <div id="score">0:00</div>
+    <div id="dist"><span id="distv">The Clearing</span></div>
   </div>
-  <button id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 18 18"><rect x="3" y="2" width="4.2" height="14" rx="1.4" fill="#f4ecd8"/><rect x="10.8" y="2" width="4.2" height="14" rx="1.4" fill="#f4ecd8"/></svg></button>
+  <div class="hud-right">
+    <button id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 18 18"><rect x="3" y="2" width="4.2" height="14" rx="1.4" fill="#f4ecd8"/><rect x="10.8" y="2" width="4.2" height="14" rx="1.4" fill="#f4ecd8"/></svg></button>
+    <button id="compassBtn" aria-label="Compass"><svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" fill="none" stroke="#f4ecd8" stroke-width="1.6"/><path d="M13 4l3.2 9H9.8z" fill="#e2b04a"/><path d="M13 22l-3.2-9h6.4z" fill="#f4ecd8" opacity=".7"/></svg></button>
+  </div>
 </div>
-<div id="combo" class="hidden"><span>x</span><b id="combov">2</b><small>chain</small></div>
+<div id="compass"><div class="dial"><svg id="needle" viewBox="0 0 24 56"><path d="M12 2l8 26H4z" fill="#ffd77a"/><path d="M12 54L4 28h16z" fill="#f4ecd8" opacity=".45"/><circle cx="12" cy="28" r="3" fill="#1f2b22"/></svg></div><div id="compassDist"></div></div>
 <div id="banner"><div class="z" id="bannerZ"></div>
   <svg class="orn" viewBox="0 0 120 10"><path d="M2 5H48M72 5H118" stroke="#fbf5e6" stroke-width="1"/><path d="M60 1l4 4-4 4-4-4z" fill="#e2b04a"/><circle cx="52" cy="5" r="1.4" fill="#fbf5e6"/><circle cx="68" cy="5" r="1.4" fill="#fbf5e6"/></svg>
   <div class="s" id="bannerS"></div></div>
@@ -160,15 +197,22 @@ h1{font-family:var(--serif);font-weight:700;font-size:54px;line-height:1;margin:
 
 <div id="title" class="screen">
   <div class="title-top">
-    <div class="eyebrow">An old-growth flight</div>
+    <div class="eyebrow">A forest you can get lost in</div>
     <h1>Featherwood</h1>
     <svg class="orn-rule" viewBox="0 0 210 16"><path d="M4 8H84M126 8H206" stroke="#f4ecd8" stroke-width="1.2" opacity=".8"/>
       <path d="M105 2c-6 2-11 4-17 6 6 2 11 4 17 6 6-2 11-4 17-6-6-2-11-4-17-6z" fill="none" stroke="#e2b04a" stroke-width="1.3"/>
       <circle cx="105" cy="8" r="2.2" fill="#e2b04a"/><circle cx="90" cy="8" r="1.3" fill="#f4ecd8"/><circle cx="120" cy="8" r="1.3" fill="#f4ecd8"/></svg>
-    <p class="tag">Leap, glide and dive from branch to branch</p>
+    <p class="tag">Fly free, explore, and find your way out</p>
+    <div class="howto">
+      <div><i>&#9757;</i><span><b>Hold</b> to flap and climb. Let go to glide.</span></div>
+      <div><i>&#8596;</i><span>While holding, <b>drag</b> left or right to turn, down to dive, up to climb.</span></div>
+      <div><i>&#9728;</i><span>Follow the <b>warm light</b> through the trees to the meadow beyond.</span></div>
+      <div><i>&#9888;</i><span>Dark woods, bog and thorns are quicker, but hide <b>owls, bats, crows and snakes</b>.</span></div>
+      <div><i>&#10084;</i><span>Hearts heal in calm places, on a perch, or with <b>berries</b>.</span></div>
+    </div>
   </div>
   <div class="title-bottom">
-    <div id="titleBest">Best<b>0</b></div>
+    <div id="titleBest">Find the way out<b>&nbsp;</b></div>
     <button id="playBtn" class="btn primary"><svg viewBox="0 0 20 20"><path d="M10 3c-1 3-4 5-8 5 3 1 5 2 6 4l-1 5 3-2 3 2-1-5c1-2 3-3 6-4-4 0-7-2-8-5z" fill="#fff6e8"/></svg>Take flight</button>
     <button id="soundBtn" class="btn ghost"></button>
   </div>
@@ -192,19 +236,38 @@ h1{font-family:var(--serif);font-weight:700;font-size:54px;line-height:1;margin:
 <div id="over" class="screen veil hidden">
   <div class="card">
     <svg id="causeIco" class="cause-ico" viewBox="0 0 64 64"></svg>
-    <div class="sub" id="causeText">Fell to the forest floor</div>
-    <div class="bigscore" id="overScore">0</div>
-    <div class="bestline">Best <b id="overBest">0</b></div>
-    <div id="newBest" class="newbest hidden">NEW BEST</div>
-    <div class="stats">
-      <div><svg viewBox="0 0 22 22"><path d="M2 16c4-1 6-5 9-9s6-5 9-5" fill="none" stroke="#2f4a35" stroke-width="1.6" stroke-dasharray="2 2.4"/><path d="M17 1.5l3.5 1-1.6 3.2" fill="none" stroke="#2f4a35" stroke-width="1.6"/><circle cx="2.5" cy="16.5" r="2" fill="#c45a2c"/></svg><b id="stDist">0</b><span>metres</span></div>
-      <div><svg viewBox="0 0 22 22"><path d="M3 14h16" stroke="#5a4030" stroke-width="2.4" stroke-linecap="round"/><path d="M11 3l1.9 4.1 4.4.5-3.3 3 .9 4.3L11 12.8 7.1 14.9l.9-4.3-3.3-3 4.4-.5z" fill="#e2b04a" stroke="#9a6c1c" stroke-width=".8"/></svg><b id="stPerf">0</b><span>perfect</span></div>
+    <div class="sub" id="causeText">Snatched by an owl</div>
+    <div class="bigscore" id="overScore">0:00</div>
+    <div class="leftline">Way out was <b id="overLeft">0 m</b> away</div>
+    <div class="stats three">
+      <div><svg viewBox="0 0 22 22"><path d="M2 16c4-1 6-5 9-9s6-5 9-5" fill="none" stroke="#2f4a35" stroke-width="1.6" stroke-dasharray="2 2.4"/><path d="M17 1.5l3.5 1-1.6 3.2" fill="none" stroke="#2f4a35" stroke-width="1.6"/><circle cx="2.5" cy="16.5" r="2" fill="#c45a2c"/></svg><b id="stDist">0</b><span>metres flown</span></div>
       <div><svg viewBox="0 0 22 22"><path d="M11 3c0 3 1 4 3 5" stroke="#3d5e43" stroke-width="1.4" fill="none"/><circle cx="8" cy="13" r="4.2" fill="#b3282b"/><circle cx="14.5" cy="14.5" r="3.8" fill="#9c1f24"/><circle cx="12" cy="9.5" r="3.3" fill="#c73a32"/><circle cx="7" cy="11.5" r="1" fill="#ffd9cf"/></svg><b id="stBerry">0</b><span>berries</span></div>
-      <div><svg viewBox="0 0 22 22"><path d="M4 18l4-5 3 3 7-11" fill="none" stroke="#c45a2c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 4.5h4.5V9" fill="none" stroke="#c45a2c" stroke-width="2" stroke-linecap="round"/></svg><b id="stCombo">0</b><span>best chain</span></div>
+      <div><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9" fill="#24304a"/><circle cx="8" cy="10" r="1.6" fill="#ffb030"/><circle cx="14" cy="10" r="1.6" fill="#ffb030"/></svg><b id="stDanger">0:00</b><span>in the dark</span></div>
     </div>
     <div class="stack">
-      <button id="againBtn" class="btn primary">Fly again</button>
-      <div class="rowbtns"><button id="titleBtn" class="btn">Title</button></div>
+      <button id="againBtn" class="btn primary">Try this forest again</button>
+      <div class="rowbtns"><button id="newForestBtn" class="btn">New forest</button><button id="titleBtn" class="btn">Title</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="win" class="screen veil hidden">
+  <div class="card">
+    <svg class="wingl" viewBox="0 0 76 76"><circle cx="38" cy="38" r="36" fill="#8cc8f0"/><path d="M2 50c12-6 24-6 36-2s24 4 36-2v26H2z" fill="#8aba44"/><circle cx="54" cy="22" r="8" fill="#fff4c8"/><path d="M30 36c-4-5-10-7-18-6 5 2 8 4 10 7 3 0 6 1 8 3l-1 4 3-2 3 2-1-4c2-2 5-3 8-3 2-3 5-5 10-7-8-1-14 1-18 6z" fill="#5a3a26"/><circle cx="30" cy="35" r="2.6" fill="#d0612f"/></svg>
+    <div class="sub">You found the way out</div>
+    <div class="bigscore" id="winTime">0:00</div>
+    <div class="bestline">Best <b id="winBest">0:00</b></div>
+    <div id="winNew" class="newbest hidden">NEW BEST</div>
+    <div class="route" id="winRoute"></div>
+    <div class="stats three">
+      <div><svg viewBox="0 0 22 22"><path d="M2 16c4-1 6-5 9-9s6-5 9-5" fill="none" stroke="#2f4a35" stroke-width="1.6" stroke-dasharray="2 2.4"/><circle cx="2.5" cy="16.5" r="2" fill="#c45a2c"/></svg><b id="winDist">0</b><span>metres flown</span></div>
+      <div><svg viewBox="0 0 24 22"><path d="M12 20.5C5 15.6 1.5 12 1.5 7.4 1.5 4.1 4 1.6 7 1.6c2.1 0 3.8 1.1 5 2.9 1.2-1.8 2.9-2.9 5-2.9 3 0 5.5 2.5 5.5 5.8 0 4.6-3.5 8.2-10.5 13.1z" fill="#d2372e"/></svg><b id="winHearts">5/5</b><span>hearts left</span></div>
+      <div><svg viewBox="0 0 22 22"><circle cx="8" cy="13" r="4.2" fill="#b3282b"/><circle cx="14.5" cy="14.5" r="3.8" fill="#9c1f24"/><circle cx="12" cy="9.5" r="3.3" fill="#c73a32"/></svg><b id="winBerry">0</b><span>berries</span></div>
+    </div>
+    <div class="seed" id="winSeed"></div>
+    <div class="stack">
+      <button id="winAgainBtn" class="btn primary">Fly a new forest</button>
+      <div class="rowbtns"><button id="winTitleBtn" class="btn">Title</button></div>
     </div>
   </div>
 </div>
